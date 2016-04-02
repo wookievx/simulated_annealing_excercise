@@ -169,7 +169,7 @@ def acceptance(old_cost, new_cost, T):
     return exp(min((old_cost - new_cost) / T / 2, 1.0))
 
 
-def input_factory(size, density, positive_neighbourhood, negative_nieghbourhood):
+def input_factory(size, density, positive_neighbourhood, negative_nieghbourhood, positive_factor, negative_factor):
     """
 
     :param size: size of the universe
@@ -193,7 +193,7 @@ def input_factory(size, density, positive_neighbourhood, negative_nieghbourhood)
             for point in Neighbourhood(tmp_table, positive_neighbourhood, (i, j), size):
                 point.neighbourhood.append(tmp_table[i][j])
 
-    energy = table_energy(tmp_table)
+    energy = table_energy(tmp_table, positive_factor, negative_factor)
 
     return tmp_table, energy
 
@@ -209,7 +209,7 @@ def table_energy(tmp_table, positive_factor, negative_factor):
     energy = 0.0
     for row in tmp_table:
         for point in row:
-            energy += calculate_energy(point, 5, 40)
+            energy += calculate_energy(point, positive_factor , negative_factor)
     return energy
 
 
@@ -244,9 +244,9 @@ def generate_image(input_data, width, height, name):
 #example of usage
 if __name__ == '__main__':
     tab, energy = input_factory(35, 0.25,
-                                ((-1, 1), (1, -1), (-1, -1), (1, 1), (1, 0), (0, 1), (-1, 0), (0, -1), (-2, 2), (2, -2),
+                                (), ((-1, 1), (1, -1), (-1, -1), (1, 1), (1, 0), (0, 1), (-1, 0), (0, -1), (-2, 2), (2, -2),
                                  (-2, -2), (2, 2), (2, 0), (0, 2), (-2, 0), (0, -2), (2, 1), (-2, 1), (2, -1),
-                                 (-2, -1)), ())
+                                 (-2, -1)), 5, 5)
     generate_image(tab, 35, 35, 'stonamilion.png')
     tab, energy_list = simulated_annealing(tab, energy)
     plt.clf()
