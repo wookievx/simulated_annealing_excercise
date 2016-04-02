@@ -1,7 +1,7 @@
 from math import exp
 from random import randint, random, sample
 import matplotlib.pyplot as plt
-from copy import copy
+from itertools import product
 from PIL import Image
 
 
@@ -9,6 +9,7 @@ class Point:
     """
     This class wraps simple
     """
+
     def __init__(self, is_filled=True):
         self.positive_neighbourhood = list()
         self.negative_neighbourhood = list()
@@ -74,7 +75,7 @@ def create_new_state(last_state, energy, positive_factor, negative_factor):
     """
 
     # here we obtain fields to swap in order to create new state
-    #------
+    # ------
     def test_one(ituple):
         return last_state[ituple[0]][ituple[1]].is_filled
 
@@ -89,7 +90,7 @@ def create_new_state(last_state, energy, positive_factor, negative_factor):
     new_positions = list(filter(test_done, new_positions))
     former_positions = former_positions[:min(len(former_positions), len(new_positions), 3)]
     new_positions = new_positions[:len(former_positions)]
-    #------
+    # ------
     for i in range(len(former_positions)):
         x_1 = former_positions[i][0]
         x_2 = new_positions[i][0]
@@ -209,11 +210,11 @@ def table_energy(tmp_table, positive_factor, negative_factor):
     energy = 0.0
     for row in tmp_table:
         for point in row:
-            energy += calculate_energy(point, positive_factor , negative_factor)
+            energy += calculate_energy(point, positive_factor, negative_factor)
     return energy
 
 
-def simulated_annealing(start_input, start_energy):
+def simulated_annealing(start_input, start_energy, positive_factor, negative_factor):
     """
     Function performs simulated_annealing in order to simulate our system
     :param start_input: the input state of the universe
@@ -226,10 +227,10 @@ def simulated_annealing(start_input, start_energy):
     energy_list = list()
     while T > T_min:
         for i in range(130):
-            point_a, point_b, energy = create_new_state(start_input, start_energy, 5, 5)
+            point_a, point_b, energy = create_new_state(start_input, start_energy, positive_factor, negative_factor)
             ap = acceptance(start_energy, energy, T)
             if ap < random():
-                energy = restore_change(point_a, point_b, start_input, energy, 5, 5)
+                energy = restore_change(point_a, point_b, start_input, energy, positive_factor, negative_factor)
             start_energy = energy
             energy_list.append(start_energy)
         T *= alpha_factor
@@ -241,15 +242,28 @@ def generate_image(input_data, width, height, name):
     img.save(name)
 
 
-#example of usage
+def scale_neighbourhood(input_neighbourhood, scale: int):
+    return tuple(set(product(((el[0] * i) for el in input_neighbourhood for i in range(1, scale + 1)),
+                             ((el[1] * i) for el in input_neighbourhood for i in range(1, scale + 1)))))
+
+
+# example of usage
 if __name__ == '__main__':
-    tab, energy = input_factory(35, 0.25,
-                                (), ((-1, 1), (1, -1), (-1, -1), (1, 1), (1, 0), (0, 1), (-1, 0), (0, -1), (-2, 2), (2, -2),
-                                 (-2, -2), (2, 2), (2, 0), (0, 2), (-2, 0), (0, -2), (2, 1), (-2, 1), (2, -1),
-                                 (-2, -1)), 5, 5)
-    generate_image(tab, 35, 35, 'stonamilion.png')
-    tab, energy_list = simulated_annealing(tab, energy)
-    plt.clf()
-    plt.plot(range(0, len(energy_list)), energy_list)
-    generate_image(tab, 35, 35, 'stonasto.png')
-    plt.savefig('cost2.png')
+    test_case_data = [
+        ('attracting_25_normal', 25, 0.25, (), scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 1), 5, 5),
+        ('phobic_25_normal', 25, 0.20, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 1), (), 5, 5),
+        ('attracting_50_normal', 50, 0.25, (), scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), 5, 5),
+        ('phobic_50_normal', 50, 0.25, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), (), 5, 5),
+        ('attracting_50_low_density', 50, 0.1, (), scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), 5, 5),
+        ('atoms_simulation_100', 100, 0.1, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 7),
+         scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), 5, 100)
+    ]
+    for i, test_case in enumerate(test_case_data):
+        tab, energy = input_factory(*test_case[1:])
+        generate_image(tab,test_case[1],test_case[1],'binary_images/before_'+test_case[0]+'.png')
+        print(test_case[-2:])
+        tab, energy_list = simulated_annealing(tab,energy,*test_case[-2:])
+        plt.clf()
+        plt.plot(range(0, len(energy_list)), energy_list)
+        generate_image(tab,test_case[1],test_case[1],'binary_images/after_'+test_case[0]+'.png')
+        plt.savefig('binary_images/before_'+test_case[0]+'.png')

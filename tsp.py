@@ -10,6 +10,7 @@ class ListWithLabel:
     """
     This class provides easy interface for creating new state from existing one
     """
+
     def __init__(self, inner_data: array, cost: float):
         self.data = inner_data
         if not cost:
@@ -98,23 +99,32 @@ def data_generator(size, cluster, cluster_range):
                   range(size)])
 
 
-#example usage
+# example usage
 if __name__ == '__main__':
-    tmpData = ListWithLabel(data_generator(120, (0, 40, 80), 4), None)
-    print(tmpData.data)
-    print(tmpData.cost)
-    for i in range(len(tmpData.data) - 1):
-        plt.plot([tmpData.data[i][0], tmpData.data[i + 1][0]], [tmpData.data[i][1], tmpData.data[i + 1][1]], color='k',
+    test_case_data = [
+        (50, (0,), 4, None),
+        (50, (0, 25), 4, None),
+        (50, (0, 25), 7, None),
+        (75, (0,), 4, None),
+        (75, (0, 25), 4, None),
+        (100, (0,), 90, None),
+        (100, (0, 50), 20, None),
+        (100, (0, 50), 10, None),
+        (120, (0, 40, 80), 6, None)
+    ]
+    for i, datax in enumerate(test_case_data, 1):
+        tmpData = ListWithLabel(data_generator(*datax[:-1]),None)
+        plt.clf()
+        for j in range(len(tmpData.data) - 1):
+            plt.plot([tmpData.data[j][0], tmpData.data[j + 1][0]], [tmpData.data[j][1], tmpData.data[j+ 1][1]], color='k',
                  linestyle='-', linewidth=2)
-    plt.savefig('before_optimisation.png')
-    tmpData, cost_list = simulated_annealing(tmpData)
-    plt.clf()
-    for i in range(len(tmpData.data) - 1):
-        plt.plot([tmpData.data[i][0], tmpData.data[i + 1][0]], [tmpData.data[i][1], tmpData.data[i + 1][1]], color='k',
+        plt.savefig('before_optimastation_'+str(i)+'.png')
+        plt.clf()
+        tmpData, cost_list = simulated_annealing(tmpData)
+        for j in range(len(tmpData.data) - 1):
+            plt.plot([tmpData.data[j][0], tmpData.data[j + 1][0]], [tmpData.data[j][1], tmpData.data[j + 1][1]], color='k',
                  linestyle='-', linewidth=2)
-    plt.savefig('after_optimastion.png')
-    print(tmpData.data)
-    print(tmpData.cost)
-    plt.clf()
-    plt.plot(range(0, len(cost_list)), cost_list)
-    plt.savefig('cost.png')
+        plt.savefig('after_optimisation_' + str(i) + '.png')
+        plt.clf()
+        plt.plot(range(0, len(cost_list)), cost_list)
+        plt.savefig('cost_' + str(i) + '.png')
