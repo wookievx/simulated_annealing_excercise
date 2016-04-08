@@ -83,13 +83,14 @@ def create_new_state(last_state, energy, positive_factor, negative_factor):
         return not last_state[ituple[0]][ituple[1]].is_filled
 
     former_positions = [(randint(0, len(last_state) - 1), randint(0, len(last_state) - 1)) for i in
-                        range(len(last_state))]
+                        range(2 * len(last_state))]
     new_positions = [(randint(0, len(last_state) - 1), randint(0, len(last_state) - 1)) for i in
-                     range(len(last_state))]
+                     range(2 * len(last_state))]
     former_positions = list(filter(test_one, former_positions))
     new_positions = list(filter(test_done, new_positions))
     former_positions = former_positions[:min(len(former_positions), len(new_positions), 3)]
     new_positions = new_positions[:len(former_positions)]
+    print(new_positions)
     # ------
     for i in range(len(former_positions)):
         x_1 = former_positions[i][0]
@@ -249,6 +250,7 @@ def scale_neighbourhood(input_neighbourhood, scale: int):
 
 # example of usage
 if __name__ == '__main__':
+
     test_case_data = [
         ('attracting_25_normal', 25, 0.25, (), scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 1), 5, 5),
         ('phobic_25_normal', 25, 0.20, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 1), (), 5, 5),
@@ -256,6 +258,8 @@ if __name__ == '__main__':
         ('phobic_50_normal', 50, 0.25, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), (), 5, 5),
         ('attracting_50_low_density', 50, 0.1, (), scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), 5, 5),
         ('atoms_simulation_100', 100, 0.1, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 7),
+         scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), 5, 100),
+        ('atoms_simulation_50', 50, 0.15, scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 10),
          scale_neighbourhood(((1, 0), (-1, 0), (0, 1), (0, -1)), 2), 5, 100)
     ]
     for i, test_case in enumerate(test_case_data):
@@ -266,4 +270,4 @@ if __name__ == '__main__':
         plt.clf()
         plt.plot(range(0, len(energy_list)), energy_list)
         generate_image(tab,test_case[1],test_case[1],'binary_images/after_'+test_case[0]+'.png')
-        plt.savefig('binary_images/before_'+test_case[0]+'.png')
+        plt.savefig('binary_images/cost_'+test_case[0]+'.png')

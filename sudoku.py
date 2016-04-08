@@ -1,12 +1,14 @@
 from numpy import array
+from copy import copy
 from random import randint, random, sample
 from numpy import e
-
+import matplotlib.pyplot as plt
 
 class Integer:
     """
     Simple wrapper around int, with ability to remember it's position in two dimensional space
     """
+
     def __init__(self, data: int, x: int, y: int):
         self.data = data
         self.x = x
@@ -60,9 +62,9 @@ def generate_new_state(quads, data_quads, rows, columns):
     """
     swaps = list()
     quad, data_quad = sample(list(zip(quads, data_quads)), 1)[0]
-    tmp = swap_valid_candidates(quad,data_quad)
-    while tmp == (-1,-1):
-        tmp = swap_valid_candidates(quad,data_quad)
+    tmp = swap_valid_candidates(quad, data_quad)
+    while tmp == (-1, -1):
+        tmp = swap_valid_candidates(quad, data_quad)
     swaps.append((tmp, quad))
     return calculate_whole_cost(columns, rows), swaps
 
@@ -115,8 +117,9 @@ def acceptance(old_cost, new_cost, temperature):
     return e ** (min((old_cost - new_cost) / temperature, 1.0))
 
 
-def algo(energy_list):
-    data = read_file()
+
+
+def algo(data):
     current_state = array([[Integer(data[i][j], i, j) for j in range(9)] for i in range(9)])
     rows = array([[current_state[i][j] for j in range(0, 9)] for i in range(0, 9)])
     columns = array([[current_state[j][i] for j in range(0, 9)] for i in range(0, 9)])
@@ -126,27 +129,40 @@ def algo(energy_list):
          range(9)])
     data_quads = array([array([data[helper[i][0] + x][helper[i][1] + y] for x in range(3) for y in range(3)]) for i in
                         range(9)])
-    print(rows)
-    print(columns)
-    print(quads)
     generate_input(quads)
-    print(current_state)
     temperature = 300.0
-    alpha = 0.90
+    alpha = 0.9
     energy = calculate_whole_cost(columns, rows)
+    energy_list = [energy]
     while energy > 0 and temperature > 0.001:
-        for i in range(200):
+        for i in range(40):
             new_energy, swaps = generate_new_state(quads, data_quads, rows, columns)
             if new_energy == 0:
-                return current_state
+                return current_state, calculate_whole_cost(columns, rows), energy_list
             if acceptance(energy, new_energy, temperature) < random():
                 restore_swaps(swaps)
             else:
                 energy = new_energy
+                energy_list.append(energy)
         temperature *= alpha
-        print(energy)
-    return current_state
+
+    return current_state, calculate_whole_cost(columns, rows), energy_list
 
 
 if __name__ == '__main__':
-    print(algo(list()))
+    data = read_file()
+    best_result = None
+    best_result_energy_list = None
+    lowest_cost = 100
+    i = 0
+    while i < 100 and lowest_cost > 0:
+        new_state, new_cost, result_energy_list = algo(data)
+        if (new_cost < lowest_cost):
+            lowest_cost = new_cost
+            best_result = new_state
+            best_result_energy_list = result_energy_list
+        i += 1
+    print(best_result)
+    print(lowest_cost)
+    plt.plot(best_result_energy_list)
+    plt.show()
